@@ -1,7 +1,7 @@
 ---
 name: proofing-gallery
 description: Use when a client needs to pick favorites from photos.
-version: 1.0.1
+version: 1.0.2
 author: Don Wright
 license: MIT
 platforms: [linux, macos, windows]

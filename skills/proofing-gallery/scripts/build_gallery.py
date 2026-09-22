@@ -17,7 +17,7 @@ Usage
 
     # then copy index.html + submit.php from templates/ into ~/web/jane
 
-Requires: Pillow  (pip install 'Pillow>=10.0,<13')
+Requires: Pillow 10.0 or newer (see SKILL.md for setup)
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ import sys
 try:
     from PIL import Image, ImageOps
 except ImportError:  # pragma: no cover
-    sys.exit("Pillow is required:  pip install 'Pillow>=10.0,<13'")
+    sys.exit("Pillow is required (10.0 or newer) — see SKILL.md for setup")
 
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
 

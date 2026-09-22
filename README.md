@@ -4,9 +4,9 @@ A small collection of [Hermes Agent](https://github.com/NousResearch/hermes-agen
 skills. Add this repo as a tap and install any of them.
 
 ```bash
-hermes skills tap add dwrd/hermes-skills
+hermes skills tap add donwrightdesigns/hermes-skills
 hermes skills search proofing
-hermes skills install dwrd/hermes-skills/proofing-gallery
+hermes skills install donwrightdesigns/hermes-skills/proofing-gallery
 ```
 
 ## Skills

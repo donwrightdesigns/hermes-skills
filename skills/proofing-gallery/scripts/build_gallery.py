@@ -17,7 +17,7 @@ Usage
 
     # then copy index.html + submit.php from templates/ into ~/web/jane
 
-Requires: Pillow  (pip install pillow)
+Requires: Pillow  (pip install 'Pillow>=10.0,<13')
 """
 
 from __future__ import annotations

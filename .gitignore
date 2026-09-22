@@ -1,0 +1,31 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# never commit someone's actual photos or client data
+_submissions/
+photos/
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.tif
+*.tiff
+*.cr2
+*.nef
+*.arw
+
+# keep the templates' expected image references working
+!skills/**/templates/**
+
+# local secrets
+.env
+*.key

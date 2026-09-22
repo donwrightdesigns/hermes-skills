@@ -32,7 +32,7 @@ import sys
 try:
     from PIL import Image, ImageOps
 except ImportError:  # pragma: no cover
-    sys.exit("Pillow is required:  pip install pillow")
+    sys.exit("Pillow is required:  pip install 'Pillow>=10.0,<13'")
 
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
 

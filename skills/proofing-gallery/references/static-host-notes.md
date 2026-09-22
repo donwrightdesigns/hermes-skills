@@ -5,60 +5,69 @@ folder over SSH. The general lessons apply to any appliance-style host.
 
 ## Serving
 
-- A NAS web folder is usually served under a path (`/volume1/web/<client>/`),
-  so the gallery lives at `https://host/<client>/`. Keep `thumbs/`, `full/`,
+- A NAS web folder is usually served under a path (`<share>/web/<client>/`), so
+  the gallery lives at `https://host/<client>/`. Keep `thumbs/`, `full/`,
   `index.html`, `manifest.json`, `submit.php` and `_submissions/` all inside
   that one folder — the page fetches `manifest.json` relatively.
 - The receiver needs a writable `_submissions/`. PHP typically runs as a
-  dedicated unprivileged user (e.g. `http`, uid 1023), **not** as you:
+  dedicated unprivileged user (often `http`, `www-data` or `nobody`) — **not**
+  as you. Give that user **ownership** of the directory:
 
-  ```
-  chmod 777  <gallery>/_submissions
+  ```bash
+  mkdir -p <gallery>/_submissions
   chown -R <webuser>:<webuser> <gallery>/_submissions
   ```
 
-- Make the static assets world-readable and the scripts world-readable but not
-  necessarily writable:
+  Find out which user it is before guessing (inspect the running PHP or web
+  worker process). Prefer ownership over widening permissions: the receiver
+  only ever needs a single writer, and a world-writable directory is a poor
+  habit even for a throwaway gallery.
+- Static assets need to be readable by the web server, and nothing more:
 
-  ```
+  ```bash
   chmod -R a+rX <gallery>/thumbs <gallery>/full
   chmod 644    <gallery>/index.html <gallery>/manifest.json <gallery>/submit.php
   ```
 
-## SSH quirks worth knowing
+## Driving an appliance host over SSH
 
-- **SFTP is often disabled** on NAS SSH even when SSH itself works. Don't rely
-  on Paramiko's `open_sftp()` — write files over the network share, or base64
-  the content through a normal `exec_command`.
-- **Never pipe data into `sudo -S`.** `sudo -S` reads the password from stdin,
-  so it consumes the first line of your payload and then hangs waiting for a
-  password that never arrives. Stage the file somewhere you *can* write, then
-  `sudo mv` it into place.
-- **A redirect is evaluated by the outer shell.** `sudo cmd > /root/path`
-  fails, because the `>` runs unprivileged. You need
-  `sudo sh -c 'cmd > /root/path'`, or write elsewhere and move it.
-- **The volume root may not be writable even as root.** Creating a config file
-  beside the share (`/volume1/mydir/`) can fail with `Permission denied` under
-  an otherwise-working `sudo`. Put config inside a share you control.
+These hosts are appliances, not general-purpose servers, and the usual
+remote-administration conventions have sharp edges:
+
+- **SFTP is often disabled** even when SSH itself works. Don't rely on an SFTP
+  client — write files over the network share, or base64 the content through a
+  normal command channel.
+- **Elevated commands read the password from stdin.** If you also pipe a payload
+  in, that payload is consumed as the password and the command hangs with no
+  useful error. Never combine "pipe some data" and "authenticate" in one
+  invocation. Stage the file somewhere you can already write, then move it into
+  place with elevated privileges.
+- **A redirect is evaluated by the shell that parses it**, not by the program
+  you elevate. Writing to a privileged path with a plain redirection fails,
+  while the command itself appears to succeed. Write elsewhere and move the
+  file instead.
+- **The volume root may not be writable even by root.** Creating a file beside a
+  share can fail with `Permission denied` in an otherwise-working elevated
+  session. Put configuration inside a share you control.
 - **Over SMB/CIFS you may be unable to delete** files in the web folder even
-  when you created them (`WinError 5`). Delete over SSH instead.
-- Run multi-command `&&` chains as separate calls where possible; a long chain
-  behind `sudo` can fail partway and report nothing.
+  when you created them. Delete over SSH instead.
+- Run multi-statement command chains as separate calls where you can — a long
+  chain behind an elevated session can fail partway and report nothing useful.
 
 ## Mail
 
-`mail()` is frequently compiled in but has no transport configured on an
-appliance, so it fails **silently**. Don't rely on it for the notification —
-use the webhook (`NOTIFY_URL`), which is a single outbound POST and needs no
-mail relay. Verify the push actually arrives (e.g. poll the ntfy topic) rather
-than assuming it worked.
+Mail delivery is frequently compiled in but has no transport configured on an
+appliance, so the send call fails **silently**. Don't rely on it for the
+notification — use the webhook (`NOTIFY_URL`), which is a single outbound POST
+and needs no mail relay. Verify the push actually arrives (poll the target)
+rather than assuming it worked.
 
 ## Verification tooling
 
-If the agent's built-in browser driver is unavailable, **Playwright with the
-Python bindings** is a reliable substitute: it ships multi-arch browsers, gives
-real touch emulation (`is_mobile`, `has_touch`), and can dispatch genuine
-multi-touch gestures through CDP:
+If a built-in browser driver is unavailable, **Playwright with the Python
+bindings** is a reliable substitute: it ships multi-arch browsers, gives real
+touch emulation (`is_mobile`, `has_touch`), and can dispatch genuine multi-touch
+gestures through CDP:
 
 ```python
 cdp = context.new_cdp_session(page)

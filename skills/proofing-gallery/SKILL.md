@@ -1,7 +1,7 @@
 ---
 name: proofing-gallery
 description: Use when a client needs to pick favorites from photos.
-version: 1.0.0
+version: 1.0.1
 author: Don Wright
 license: MIT
 platforms: [linux, macos, windows]
@@ -85,13 +85,19 @@ root is fetchable by anyone.
 
 ### 4. Make the receiver writable
 
-`submit.php` writes into `_submissions/` next to itself, so the web server user
-must be able to write there:
+`submit.php` writes into `_submissions/` next to itself, so the **web server
+user** — not you — needs write access there. Give it ownership rather than
+widening permissions:
 
 ```bash
 mkdir -p ~/web/jane/_submissions
-chmod 777 ~/web/jane/_submissions      # or chown it to the web server user
+chown -R www-data:www-data ~/web/jane/_submissions   # the user PHP runs as
 ```
+
+Find that user first if you don't know it (on a NAS it's often `http` or
+`nobody`). Prefer ownership over permissions — the receiver only ever needs a
+single writer, and a world-writable directory is a poor habit even for a
+throwaway gallery.
 
 ### 5. Test for real
 
